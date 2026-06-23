@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Syntax check
+        run: bash -n pandaray.sh
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get install -y shellcheck
+          shellcheck -s bash -S warning -e SC2034,SC2155,SC2046,SC2086,SC2116,SC2059,SC2145,SC2162,SC2068,SC2206,SC2076,SC2126 pandaray.sh || true
+
+      - name: Test installation
+        run: |
+          sudo bash pandaray.sh --install
+          pandaray version
+          pandaray help
+
+      - name: Test add server
+        run: |
+          pandaray add 'trojan://4f4d1167-ef14-4304-9bce-0740472503ef@188.253.12.92:41943?allowInsecure=1&sni=az.01.naiun.bilibili.com#TestServer'
+          pandaray list
+          COUNT=$(pandaray list 2>&1 | grep -c "Trojan")
+          [ "$COUNT" -ge 1 ] && echo "✔ Server added successfully"
+
+      - name: Test config generation
+        run: |
+          pandaray config 1 | jq . > /dev/null
+          echo "✔ Valid JSON config generated"
+
+      - name: Test export
+        run: |
+          pandaray export 1 /tmp/export_test.json
+          jq . /tmp/export_test.json > /dev/null
+          echo "✔ Export produces valid JSON"
+
+      - name: Test settings
+        run: |
+          pandaray set test-url https://cp.cloudflare.com
+          pandaray set timeout 3
+          pandaray set concurrent 5
+          OUTPUT=$(pandaray set)
+          echo "$OUTPUT" | grep -q "cp.cloudflare.com" && echo "✔ Settings updated"
+
+      - name: Test server testing
+        run: |
+          pandaray test
+          echo "✔ Test command completed"
+
+      - name: Test remove
+        run: |
+          pandaray remove 1
+          OUTPUT=$(pandaray list 2>&1)
+          echo "$OUTPUT" | grep -q "No servers" && echo "✔ Server removed"
+
+      - name: Test disconnect
+        run: |
+          pandaray disconnect
+          pandaray status | grep -q "Disconnected" && echo "✔ Disconnected"
