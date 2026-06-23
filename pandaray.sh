@@ -351,7 +351,7 @@ cmd_list(){
 
 cmd_config(){
     local i=${1:-};[[ -z "$i" ]]&&{ echo "  Usage: pandaray config <#>";return 0; };i=$((i-1))
-    local s=$(gj "$i")||{ er "Invalid #";return 1; };gen_cfg "$(gen_out "$s")"|jq .;echo -e "  ${DM}→ $CONF_DIR/active.json${RST}"
+    local s=$(gj "$i")||{ er "Invalid #";return 1; };gen_cfg "$(gen_out "$s")"|jq .;echo -e "  ${DM}→ $CONF_DIR/active.json${RST}" >&2
 }
 
 cmd_export(){
