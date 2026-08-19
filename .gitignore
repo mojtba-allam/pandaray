@@ -1,1 +1,1 @@
-Nothing needs to be added to .gitignore since only a shell script file (`pandaray.sh`) was modified, which is a source/config file and should not be ignored.
+Nothing should be ignored based on the provided file changes. The only modified file is `pandaray.sh`, which appears to be a shell script source file and should not be ignored.
